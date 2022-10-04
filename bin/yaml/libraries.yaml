@@ -442,6 +442,15 @@ libraries:
       targets:
       - 0.12.2
       type: github
+    icu:
+      build_type: manual
+      check_file: README.md
+      lib_type: shared
+      repo:  unicode-org/icu
+      target_prefix: release-
+      targets:
+      - 71-1
+      type: github
     jsoncons:
       check_file: README.md
       repo: danielaparker/jsoncons
