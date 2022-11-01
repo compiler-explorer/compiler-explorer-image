@@ -5,7 +5,7 @@ resource "aws_alb" "GccExplorerApp" {
   security_groups = [
     aws_security_group.CompilerExplorerAlb.id
   ]
-  subnets         = local.all_subnet_ids
+  subnets = local.all_subnet_ids
 
   enable_deletion_protection = false
 
@@ -28,7 +28,7 @@ resource "aws_alb_listener" "compiler-explorer-alb-listen-http" {
 }
 
 resource "aws_alb_listener_rule" "compiler-explorer-alb-listen-http-beta" {
-  priority     = 1
+  priority = 1
   action {
     type             = "forward"
     target_group_arn = aws_alb_target_group.ce["beta"].arn
@@ -42,7 +42,7 @@ resource "aws_alb_listener_rule" "compiler-explorer-alb-listen-http-beta" {
 }
 
 resource "aws_alb_listener_rule" "compiler-explorer-alb-listen-http-staging" {
-  priority     = 2
+  priority = 2
   action {
     type             = "forward"
     target_group_arn = aws_alb_target_group.ce["staging"].arn
@@ -70,7 +70,7 @@ resource "aws_alb_listener" "compiler-explorer-alb-listen-https" {
 }
 
 resource "aws_alb_listener_rule" "compiler-explorer-alb-listen-https-beta" {
-  priority     = 1
+  priority = 1
   action {
     type             = "forward"
     target_group_arn = aws_alb_target_group.ce["beta"].arn
@@ -86,7 +86,7 @@ resource "aws_alb_listener_rule" "compiler-explorer-alb-listen-https-beta" {
 }
 
 resource "aws_alb_listener_rule" "compiler-explorer-alb-listen-https-staging" {
-  priority     = 2
+  priority = 2
   action {
     type             = "forward"
     target_group_arn = aws_alb_target_group.ce["staging"].arn
@@ -101,20 +101,6 @@ resource "aws_alb_listener_rule" "compiler-explorer-alb-listen-https-staging" {
   listener_arn = aws_alb_listener.compiler-explorer-alb-listen-https.arn
 }
 
-
-resource "aws_alb_listener_rule" "compiler-explorer-alb-listen-https-nsolid" {
-  priority     = 4
-  action {
-    type             = "forward"
-    target_group_arn = aws_alb_target_group.nsolid.arn
-  }
-  condition {
-    host_header {
-      values = ["nsolid.compiler-explorer.com"]
-    }
-  }
-  listener_arn = aws_alb_listener.compiler-explorer-alb-listen-https.arn
-}
 
 resource "aws_alb_listener" "ceconan-alb-listen-http" {
   default_action {
@@ -151,7 +137,7 @@ resource "aws_alb_target_group_attachment" "lambda-stats-endpoint" {
 }
 
 resource "aws_alb_listener_rule" "compiler-explorer-alb-listen-https-lambda" {
-  priority     = 3
+  priority = 3
   action {
     type             = "forward"
     target_group_arn = aws_alb_target_group.lambda.arn
@@ -165,14 +151,14 @@ resource "aws_alb_listener_rule" "compiler-explorer-alb-listen-https-lambda" {
 }
 
 resource "aws_alb_listener_rule" "compiler-explorer-alb-listen-https-stats" {
-  priority     = 5
+  priority = 5
   action {
-    type             = "redirect"
+    type = "redirect"
     redirect {
       status_code = "HTTP_301"
-      host = "ce.grafana.net"
-      path = "/public-dashboards/326d9aa2606b4efea25f4458a4c3f065"
-      query = "orgId=0&refresh=1m"
+      host        = "ce.grafana.net"
+      path        = "/public-dashboards/326d9aa2606b4efea25f4458a4c3f065"
+      query       = "orgId=0&refresh=1m"
     }
   }
   condition {

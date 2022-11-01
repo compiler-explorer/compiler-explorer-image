@@ -19,7 +19,7 @@ resource "aws_acm_certificate_validation" "static-ce-cdn-net" {
 */
 
 resource "aws_acm_certificate" "godbolt-org-et-al" {
-  domain_name = "godbolt.org"
+  domain_name       = "godbolt.org"
   validation_method = "DNS"
 
   subject_alternative_names = [

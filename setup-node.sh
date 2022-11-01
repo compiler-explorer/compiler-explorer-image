@@ -84,21 +84,10 @@ popd
 
 pushd /opt
 # node.js
-TARGET_NODE_VERSION=v16.13.1
+TARGET_NODE_VERSION=v16.17.1
 echo "Installing node ${TARGET_NODE_VERSION}"
 curl -sL "https://nodejs.org/dist/${TARGET_NODE_VERSION}/node-${TARGET_NODE_VERSION}-linux-x64.tar.gz" | tar zxf - && mv node-${TARGET_NODE_VERSION}-linux-x64 node
 popd
-
-# nsolid
-mkdir /tmp/nsolid
-pushd /tmp/nsolid
-NSOLID_VERSION=4.7.1
-curl -sL https://s3-us-west-2.amazonaws.com/nodesource-public-downloads/4.7.1/artifacts/bundles/nsolid-bundle-v${NSOLID_VERSION}-linux-x64.tar.gz | tar zxf - --strip-components 2
-
-mkdir /opt/nsolid
-tar zxf nsolid-v${NSOLID_VERSION}-gallium-linux-x64.tar.gz --strip-components 1 -C /opt/nsolid
-popd
-rm -rf /tmp/nsolid
 
 cp nginx/nginx.conf /etc/nginx/nginx.conf
 systemctl restart nginx

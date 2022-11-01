@@ -118,10 +118,10 @@ resource "aws_autoscaling_group" "staging" {
     id      = aws_launch_template.CompilerExplorer-staging.id
     version = "$Latest"
   }
-  max_size                  = 4
-  min_size                  = 0
-  name                      = "staging"
-  vpc_zone_identifier       = local.subnets
+  max_size            = 4
+  min_size            = 0
+  name                = "staging"
+  vpc_zone_identifier = local.subnets
 
   target_group_arns = [aws_alb_target_group.ce["staging"].arn]
 }

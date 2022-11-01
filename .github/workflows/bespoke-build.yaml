@@ -27,7 +27,7 @@ jobs:
     steps:
       - name: Start from a clean directory
         uses: AutoModality/action-clean@v1.1.0
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Build ${{ github.event.inputs.image }} ${{ github.event.inputs.version }} using ${{ github.event.inputs.command }}
         shell: bash
         id: build

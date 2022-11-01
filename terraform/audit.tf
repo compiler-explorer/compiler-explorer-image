@@ -6,15 +6,11 @@ resource "aws_cloudtrail" "audit" {
   include_global_service_events = true
   event_selector {
     include_management_events = true
-    read_write_type = "All"
+    read_write_type           = "All"
   }
-  is_multi_region_trail         = true
-  enable_log_file_validation    = true
-  depends_on = [aws_s3_bucket_policy.cloudtrail-bucket-policy]
-  # until https://github.com/terraform-providers/terraform-provider-aws/pull/5448 is fixed
-  lifecycle {
-    ignore_changes = [event_selector]
-  }
+  is_multi_region_trail      = true
+  enable_log_file_validation = true
+  depends_on                 = [aws_s3_bucket_policy.cloudtrail-bucket-policy]
 }
 
 data "aws_iam_policy_document" "audit-s3-policy" {
@@ -28,7 +24,7 @@ data "aws_iam_policy_document" "audit-s3-policy" {
     resources = [aws_s3_bucket.cloudtrail.arn]
   }
   statement {
-    sid       = "AWSCloudTrailWrite"
+    sid = "AWSCloudTrailWrite"
     principals {
       type        = "Service"
       identifiers = ["cloudtrail.amazonaws.com"]
@@ -52,17 +48,21 @@ resource "aws_s3_bucket" "cloudtrail" {
   //    mfa_delete = true
   //  }
 
-  tags                          = {
+  tags = {
     S3-Bucket-Name = "cloudtrail.godbolt.org"
   }
+}
 
-  lifecycle_rule {
-    enabled = true
+resource "aws_s3_bucket_lifecycle_configuration" "cloudtrail" {
+  bucket = aws_s3_bucket.cloudtrail.id
+  rule {
+    id     = "delete_forever_after_200"
+    status = "Enabled"
     expiration {
       days = 200
     }
     noncurrent_version_expiration {
-      days = 1
+      noncurrent_days = 1
     }
   }
 }
@@ -73,9 +73,9 @@ resource "aws_s3_bucket_policy" "cloudtrail-bucket-policy" {
 }
 
 resource "aws_s3_bucket_public_access_block" "cloudtrail" {
-  bucket = aws_s3_bucket.cloudtrail.id
-  block_public_acls   = true
-  block_public_policy = true
-  ignore_public_acls = true
+  bucket                  = aws_s3_bucket.cloudtrail.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
   restrict_public_buckets = true
 }

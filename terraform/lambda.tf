@@ -26,8 +26,8 @@ data "aws_iam_policy_document" "aws_lambda_stats" {
     resources = ["${aws_s3_bucket.compiler-explorer-logs.arn}/stats/*"]
   }
   statement {
-    sid       = "AccessSQS"
-    actions   = [
+    sid     = "AccessSQS"
+    actions = [
       "sqs:ReceiveMessage",
       "sqs:DeleteMessage",
       "sqs:GetQueueAttributes",
@@ -36,8 +36,8 @@ data "aws_iam_policy_document" "aws_lambda_stats" {
     resources = [aws_sqs_queue.stats_queue.arn]
   }
   statement {
-    sid       = "ReadCompilerDb"
-    actions   = [
+    sid     = "ReadCompilerDb"
+    actions = [
       "dynamodb:Query"
     ]
     resources = [aws_dynamodb_table.compiler-builds.arn]
@@ -65,13 +65,13 @@ resource "aws_sns_topic_subscription" "sns_to_lambda" {
   endpoint  = aws_lambda_function.cloudwatch_to_discord.arn
 }
 
-data "aws_s3_bucket_object" "lambda_zip" {
+data "aws_s3_object" "lambda_zip" {
   # Lambda zip is uploaded and rebuild by the Makefile: make upload-lambda
   bucket = aws_s3_bucket.compiler-explorer.bucket
   key    = "lambdas/lambda-package.zip"
 }
 
-data "aws_s3_bucket_object" "lambda_zip_sha" {
+data "aws_s3_object" "lambda_zip_sha" {
   # Lambda zip's SHA256 is uploaded and rebuild by the Makefile: make upload-lambda
   bucket = aws_s3_bucket.compiler-explorer.bucket
   key    = "lambdas/lambda-package.zip.sha256"
@@ -79,10 +79,10 @@ data "aws_s3_bucket_object" "lambda_zip_sha" {
 
 resource "aws_lambda_function" "cloudwatch_to_discord" {
   description       = "Dispatch cloudwatch messages to discord"
-  s3_bucket         = data.aws_s3_bucket_object.lambda_zip.bucket
-  s3_key            = data.aws_s3_bucket_object.lambda_zip.key
-  s3_object_version = data.aws_s3_bucket_object.lambda_zip.version_id
-  source_code_hash  = chomp(data.aws_s3_bucket_object.lambda_zip_sha.body)
+  s3_bucket         = data.aws_s3_object.lambda_zip.bucket
+  s3_key            = data.aws_s3_object.lambda_zip.key
+  s3_object_version = data.aws_s3_object.lambda_zip.version_id
+  source_code_hash  = chomp(data.aws_s3_object.lambda_zip_sha.body)
   function_name     = "cloudwatch_to_discord"
   role              = aws_iam_role.iam_for_lambda.arn
   handler           = "cloudwatch_to_discord.lambda_handler"
@@ -107,10 +107,10 @@ resource "aws_lambda_permission" "with_sns" {
 
 resource "aws_lambda_function" "stats" {
   description       = "Respond to various CE-specific stats records"
-  s3_bucket         = data.aws_s3_bucket_object.lambda_zip.bucket
-  s3_key            = data.aws_s3_bucket_object.lambda_zip.key
-  s3_object_version = data.aws_s3_bucket_object.lambda_zip.version_id
-  source_code_hash  = chomp(data.aws_s3_bucket_object.lambda_zip_sha.body)
+  s3_bucket         = aws_s3_bucket.compiler-explorer.bucket
+  s3_key            = data.aws_s3_object.lambda_zip.key
+  s3_object_version = data.aws_s3_object.lambda_zip.version_id
+  source_code_hash  = chomp(data.aws_s3_object.lambda_zip_sha.body)
   function_name     = "stats"
   role              = aws_iam_role.iam_for_lambda.arn
   handler           = "stats.lambda_handler"

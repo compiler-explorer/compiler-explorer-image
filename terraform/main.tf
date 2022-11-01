@@ -1,5 +1,5 @@
 provider "aws" {
-  region  = "us-east-1"
+  region = "us-east-1"
   default_tags {
     tags = {
       Site = "CompilerExplorer"
@@ -8,11 +8,11 @@ provider "aws" {
 }
 
 terraform {
-  required_version = "~> 1.0.1"
+  required_version = "~> 1.3.2"
   required_providers {
     aws = {
-      source = "hashicorp/aws",
-      version = "~> 3.47.0"
+      source  = "hashicorp/aws",
+      version = "~> 4.34.0"
     }
   }
   backend "s3" {

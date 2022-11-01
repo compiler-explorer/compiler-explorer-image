@@ -3,6 +3,6 @@ compilers:
     if: nightly
     type: nightly
     s3_path_prefix: jakt-{name}
-    check_exe: jakt-selfhost --version
+    check_exe: bin/jakt --version
     targets:
       - trunk

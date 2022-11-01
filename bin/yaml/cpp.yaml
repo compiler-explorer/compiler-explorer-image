@@ -419,13 +419,18 @@ compilers:
             - 12.1.0
             - 12.2.0
         sh:
-          arch_prefix: "sh-multilib-linux-gnu"
+          arch_prefix: "sh-unknown-elf"
           check_exe: "{arch_prefix}/bin/{arch_prefix}-g++ --version"
           subdir: sh
           targets:
-            - name: 4.9.4
-              arch_prefix: "sh-unknown-elf"
+            - 4.9.4
             - 9.5.0
+            - 12.2.0
+        loongarch64:
+          arch_prefix: "{subdir}-unknown-linux-gnu"
+          check_exe: "{arch_prefix}/bin/{arch_prefix}-g++ --version"
+          subdir: loongarch64
+          targets:
             - 12.2.0
         powerpc:
           arch_prefix: "{subdir}-unknown-linux-gnu"

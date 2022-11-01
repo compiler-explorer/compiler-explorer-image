@@ -1,3 +1,6 @@
+locals {
+  deny_rate_limit_name_metric_name = "deny-rate-limit"
+}
 data "aws_acm_certificate" "godbolt-org-et-al" {
   domain      = "godbolt.org"
   types       = ["AMAZON_ISSUED"]
@@ -68,11 +71,11 @@ resource "aws_cloudfront_distribution" "ce-godbolt-org" {
 
   # Message of the day stuff, served from s3
   ordered_cache_behavior {
-    allowed_methods        = [
+    allowed_methods = [
       "GET",
       "HEAD"
     ]
-    cached_methods         = [
+    cached_methods = [
       "GET",
       "HEAD"
     ]
@@ -89,11 +92,11 @@ resource "aws_cloudfront_distribution" "ce-godbolt-org" {
 
   # Admin stuff, also served from s3
   ordered_cache_behavior {
-    allowed_methods        = [
+    allowed_methods = [
       "GET",
       "HEAD"
     ]
-    cached_methods         = [
+    cached_methods = [
       "GET",
       "HEAD"
     ]
@@ -109,7 +112,7 @@ resource "aws_cloudfront_distribution" "ce-godbolt-org" {
   }
 
   default_cache_behavior {
-    allowed_methods        = [
+    allowed_methods = [
       "HEAD",
       "DELETE",
       "POST",
@@ -118,7 +121,7 @@ resource "aws_cloudfront_distribution" "ce-godbolt-org" {
       "PUT",
       "PATCH"
     ]
-    cached_methods         = [
+    cached_methods = [
       "HEAD",
       "GET"
     ]
@@ -144,7 +147,7 @@ resource "aws_cloudfront_distribution" "ce-godbolt-org" {
     error_caching_min_ttl = 5
     response_page_path    = "/admin/503.html"
   }
-  web_acl_id = aws_wafv2_web_acl.rate_limit.arn
+  web_acl_id = aws_wafv2_web_acl.compiler-explorer.arn
 }
 
 # TODO - the duplication is rubbish
@@ -208,11 +211,11 @@ resource "aws_cloudfront_distribution" "compiler-explorer-com" {
 
   # Message of the day stuff, served from s3
   ordered_cache_behavior {
-    allowed_methods        = [
+    allowed_methods = [
       "GET",
       "HEAD"
     ]
-    cached_methods         = [
+    cached_methods = [
       "GET",
       "HEAD"
     ]
@@ -229,11 +232,11 @@ resource "aws_cloudfront_distribution" "compiler-explorer-com" {
 
   # Admin stuff, also served from s3
   ordered_cache_behavior {
-    allowed_methods        = [
+    allowed_methods = [
       "GET",
       "HEAD"
     ]
-    cached_methods         = [
+    cached_methods = [
       "GET",
       "HEAD"
     ]
@@ -249,7 +252,7 @@ resource "aws_cloudfront_distribution" "compiler-explorer-com" {
   }
 
   default_cache_behavior {
-    allowed_methods        = [
+    allowed_methods = [
       "HEAD",
       "DELETE",
       "POST",
@@ -258,7 +261,7 @@ resource "aws_cloudfront_distribution" "compiler-explorer-com" {
       "PUT",
       "PATCH"
     ]
-    cached_methods         = [
+    cached_methods = [
       "HEAD",
       "GET"
     ]
@@ -284,7 +287,7 @@ resource "aws_cloudfront_distribution" "compiler-explorer-com" {
     error_caching_min_ttl = 5
     response_page_path    = "/admin/503.html"
   }
-  web_acl_id = aws_wafv2_web_acl.rate_limit.arn
+  web_acl_id = aws_wafv2_web_acl.compiler-explorer.arn
 }
 
 resource "aws_cloudfront_distribution" "godbo-lt" {
@@ -346,11 +349,11 @@ resource "aws_cloudfront_distribution" "godbo-lt" {
 
   # Message of the day stuff, served from s3
   ordered_cache_behavior {
-    allowed_methods        = [
+    allowed_methods = [
       "GET",
       "HEAD"
     ]
-    cached_methods         = [
+    cached_methods = [
       "GET",
       "HEAD"
     ]
@@ -367,11 +370,11 @@ resource "aws_cloudfront_distribution" "godbo-lt" {
 
   # Admin stuff, also served from s3
   ordered_cache_behavior {
-    allowed_methods        = [
+    allowed_methods = [
       "GET",
       "HEAD"
     ]
-    cached_methods         = [
+    cached_methods = [
       "GET",
       "HEAD"
     ]
@@ -387,7 +390,7 @@ resource "aws_cloudfront_distribution" "godbo-lt" {
   }
 
   default_cache_behavior {
-    allowed_methods        = [
+    allowed_methods = [
       "HEAD",
       "DELETE",
       "POST",
@@ -396,7 +399,7 @@ resource "aws_cloudfront_distribution" "godbo-lt" {
       "PUT",
       "PATCH"
     ]
-    cached_methods         = [
+    cached_methods = [
       "HEAD",
       "GET"
     ]
@@ -423,7 +426,7 @@ resource "aws_cloudfront_distribution" "godbo-lt" {
     response_page_path    = "/admin/503.html"
   }
 
-  web_acl_id = aws_wafv2_web_acl.rate_limit.arn
+  web_acl_id = aws_wafv2_web_acl.compiler-explorer.arn
 }
 
 resource "aws_cloudfront_distribution" "static-ce-cdn-net" {
@@ -467,12 +470,12 @@ resource "aws_cloudfront_distribution" "static-ce-cdn-net" {
   }
 
   default_cache_behavior {
-    allowed_methods        = [
+    allowed_methods = [
       "HEAD",
       "GET",
       "OPTIONS"
     ]
-    cached_methods         = [
+    cached_methods = [
       "HEAD",
       "GET",
       "OPTIONS"
@@ -481,7 +484,7 @@ resource "aws_cloudfront_distribution" "static-ce-cdn-net" {
       cookies {
         forward = "none"
       }
-      headers                 = [
+      headers = [
         # see https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/header-caching.html#header-caching-web-cors
         "Origin",
         "Access-Control-Request-Headers",
@@ -498,24 +501,68 @@ resource "aws_cloudfront_distribution" "static-ce-cdn-net" {
   }
 }
 
-resource "aws_wafv2_web_acl" "rate_limit" {
-  name  = "RateLimitCompilerExplorer"
+resource "aws_wafv2_web_acl" "compiler-explorer" {
+  name  = "CompilerExplorer"
   scope = "CLOUDFRONT"
   default_action {
     allow {}
   }
 
   rule {
-    name     = "RateLimitPost"
+    name     = "deny-ipv4"
+    priority = 0
+    action {
+      block {}
+    }
+    statement {
+      ip_set_reference_statement {
+        arn = aws_wafv2_ip_set.banned-ipv4.arn
+      }
+    }
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "deny-ipv4"
+      sampled_requests_enabled   = true
+    }
+  }
+
+  rule {
+    name     = "deny-ipv6"
     priority = 1
     action {
-      //      block {}
-      count {}
+      block {}
+    }
+    statement {
+      ip_set_reference_statement {
+        arn = aws_wafv2_ip_set.banned-ipv6.arn
+      }
+    }
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "deny-ipv6"
+      sampled_requests_enabled   = true
+    }
+  }
+
+  rule {
+    name     = "RateLimitPost"
+    priority = 2
+    action {
+      block {
+        custom_response {
+          response_code            = 429
+          custom_response_body_key = "blocked-ratelimit"
+          response_header {
+            name  = "Retry-After"
+            value = "300"
+          }
+        }
+      }
     }
     statement {
       rate_based_statement {
         // Limit to this many per 5 minutes (300 seconds)
-        limit              = 300
+        limit              = 1200
         aggregate_key_type = "IP"
         scope_down_statement {
           byte_match_statement {
@@ -534,98 +581,36 @@ resource "aws_wafv2_web_acl" "rate_limit" {
     }
     visibility_config {
       cloudwatch_metrics_enabled = true
-      metric_name                = "ce_rate_limited_blocked"
+      metric_name                = local.deny_rate_limit_name_metric_name
       sampled_requests_enabled   = true
     }
   }
+
+  custom_response_body {
+    content      = "Your request has hit our rate limit. Please reduce the load you're putting on our site. Contact us on Discord if you feel this is in error."
+    content_type = "TEXT_PLAIN"
+    key          = "blocked-ratelimit"
+  }
+
   visibility_config {
     cloudwatch_metrics_enabled = true
-    metric_name                = "ce_rate_limited_ok"
+    metric_name                = "ok"
     sampled_requests_enabled   = true
   }
 }
 
-resource "aws_cloudfront_distribution" "nsolid-compiler-explorer-com" {
-  origin {
-    domain_name = aws_alb.GccExplorerApp.dns_name
-    origin_id   = "ALB-compiler-explorer"
-    custom_origin_config {
-      http_port                = 80
-      https_port               = 443
-      origin_read_timeout      = 60
-      origin_keepalive_timeout = 60
-      origin_protocol_policy   = "https-only"
-      origin_ssl_protocols     = [
-        "TLSv1",
-        "TLSv1.2",
-        "TLSv1.1"
-      ]
-    }
-  }
+resource "aws_wafv2_ip_set" "banned-ipv4" {
+  name               = "banned-ipv4"
+  description        = "Banned ipv4"
+  scope              = "CLOUDFRONT"
+  ip_address_version = "IPV4"
+  addresses          = []
+}
 
-  enabled          = true
-  is_ipv6_enabled  = true
-  aliases          = [
-    "nsolid.compiler-explorer.com"
-  ]
-
-  viewer_certificate {
-    acm_certificate_arn      = data.aws_acm_certificate.godbolt-org-et-al.arn
-    ssl_support_method       = "sni-only"
-    minimum_protocol_version = "TLSv1.1_2016"
-  }
-
-  logging_config {
-    include_cookies = false
-    bucket          = "compiler-explorer-logs.s3.amazonaws.com"
-    prefix          = "cloudfront/"
-  }
-
-  http_version = "http2"
-
-  restrictions {
-    geo_restriction {
-      restriction_type = "blacklist"
-      locations        = [
-        "CU",
-        "IR",
-        "KP",
-        "SD",
-        "SY"
-      ]
-    }
-  }
-
-  default_cache_behavior {
-    allowed_methods        = [
-      "HEAD",
-      "DELETE",
-      "POST",
-      "GET",
-      "OPTIONS",
-      "PUT",
-      "PATCH"
-    ]
-    cached_methods         = [
-      "HEAD",
-      "GET"
-    ]
-    forwarded_values {
-      cookies {
-        forward = "whitelist"
-        whitelisted_names = ["nsolid-session", "nsolid-refresh"]
-      }
-      query_string = true
-      headers      = [
-        "Accept",
-        "Host",
-        "CloudFront-Is-Mobile-Viewer"
-      ]
-    }
-    target_origin_id       = "ALB-compiler-explorer"
-    viewer_protocol_policy = "redirect-to-https"
-    compress               = true
-  }
-
-  web_acl_id = aws_wafv2_web_acl.rate_limit.arn
+resource "aws_wafv2_ip_set" "banned-ipv6" {
+  name               = "banned-ipv6"
+  description        = "Banned ipv6"
+  scope              = "CLOUDFRONT"
+  ip_address_version = "IPV6"
+  addresses          = []
 }

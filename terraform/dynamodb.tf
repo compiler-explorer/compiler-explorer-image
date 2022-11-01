@@ -1,5 +1,5 @@
 resource "aws_dynamodb_table" "links" {
-  name           = "links"
+  name = "links"
   lifecycle {
     ignore_changes = [
       read_capacity,
@@ -28,7 +28,7 @@ resource "aws_dynamodb_table" "links" {
 }
 
 resource "aws_dynamodb_table" "versionslog" {
-  name           = "versionslog"
+  name = "versionslog"
   lifecycle {
     ignore_changes = [
       read_capacity,
@@ -57,7 +57,7 @@ resource "aws_dynamodb_table" "versionslog" {
 }
 
 resource "aws_dynamodb_table" "compiler-builds" {
-  name           = "compiler-builds"
+  name = "compiler-builds"
   lifecycle {
     ignore_changes = [
       read_capacity,

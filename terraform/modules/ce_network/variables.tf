@@ -5,5 +5,5 @@ variable "cidr_b_prefix" {
 
 variable "subnets" {
   description = "The subnets to run inside - map of name to third octet"
-  type = map(string)
+  type        = map(string)
 }

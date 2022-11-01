@@ -55,7 +55,7 @@ resource "aws_cloudfront_distribution" "conan-compiler-explorer-com" {
   }
 
   default_cache_behavior {
-    allowed_methods        = [
+    allowed_methods = [
       "HEAD",
       "DELETE",
       "POST",
@@ -64,7 +64,7 @@ resource "aws_cloudfront_distribution" "conan-compiler-explorer-com" {
       "PUT",
       "PATCH"
     ]
-    cached_methods         = [
+    cached_methods = [
       "HEAD",
       "GET"
     ]

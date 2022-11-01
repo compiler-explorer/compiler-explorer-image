@@ -23,11 +23,11 @@ resource "aws_route53_record" "google-hosted-stuff-godbolt-org" {
     url      = "url"
     calendar = "calendar"
   }
-  name     = each.value
-  zone_id  = module.godbolt-org.zone_id
-  ttl      = 3600
-  type     = "CNAME"
-  records  = ["ghs.googlehosted.com"]
+  name    = each.value
+  zone_id = module.godbolt-org.zone_id
+  ttl     = 3600
+  type    = "CNAME"
+  records = ["ghs.googlehosted.com"]
 }
 
 data "aws_cloudfront_distribution" "jsbeeb" {
@@ -39,9 +39,9 @@ resource "aws_route53_record" "jsbeeb-godbolt-org" {
     bbc    = "bbc"
     master = "master"
   }
-  name     = each.value
-  zone_id  = module.godbolt-org.zone_id
-  type     = "A"
+  name    = each.value
+  zone_id = module.godbolt-org.zone_id
+  type    = "A"
   alias {
     name                   = data.aws_cloudfront_distribution.jsbeeb.domain_name
     zone_id                = data.aws_cloudfront_distribution.jsbeeb.hosted_zone_id
@@ -79,7 +79,8 @@ resource "aws_route53_record" "dkim-godbolt-org" {
   ttl     = 3600
   type    = "TXT"
   records = [
-    "v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCYl6muZHDYPuwza5M/Ba4coCeQShiWZ7qIaZgiWWhicS/0Xtesz88hFRdQHs6KlxiKUsPw8053SpS9NVLoq3jWeWce4JJgBNXi29WEnID0SJSdyq9xgpe1GThZccem21rHOk0t1VdQDoXUvhDTI3HaGmODMv7FNQm2nz1yNZDP1QIDAQAB"]
+    "v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCYl6muZHDYPuwza5M/Ba4coCeQShiWZ7qIaZgiWWhicS/0Xtesz88hFRdQHs6KlxiKUsPw8053SpS9NVLoq3jWeWce4JJgBNXi29WEnID0SJSdyq9xgpe1GThZccem21rHOk0t1VdQDoXUvhDTI3HaGmODMv7FNQm2nz1yNZDP1QIDAQAB"
+  ]
 }
 
 
@@ -113,16 +114,6 @@ resource "aws_route53_record" "ses-compiler-explorer-com" {
 }
 
 
-resource "aws_route53_record" "nsolid-compiler-explorer-com" {
-  name    = "nsolid"
-  zone_id = module.compiler-explorer-com.zone_id
-  type    = "A"
-  alias {
-    name                   = aws_cloudfront_distribution.nsolid-compiler-explorer-com.domain_name
-    zone_id                = aws_cloudfront_distribution.nsolid-compiler-explorer-com.hosted_zone_id
-    evaluate_target_health = false
-  }
-}
 ////////////////////////////////////////////////////
 
 module godbo-lt {

@@ -102,13 +102,9 @@ if [[ "${ENV}" == "runner" ]]; then
   exit
 fi
 
-export NSOLID_COMMAND=172.30.0.214:9001
-export NSOLID_APPNAME="Compiler Explorer"
-export NSOLID_TAGS="${ENV}"
-
 # shellcheck disable=SC2086
-exec sudo -u ${CE_USER} -H --preserve-env=NODE_ENV,NSOLID_COMMAND,NSOLID_APPNAME,NSOLID_TAGS -- \
-    /opt/nsolid/bin/nsolid \
+exec sudo -u ${CE_USER} -H --preserve-env=NODE_ENV -- \
+    /opt/node/bin/node \
     -r esm \
     -- app.js \
     --suppressConsoleLog \

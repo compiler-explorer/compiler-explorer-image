@@ -4,8 +4,7 @@ resource "aws_vpc" "CompilerExplorer" {
   enable_dns_support   = true
   instance_tenancy     = "default"
 
-  enable_classiclink = false
-  tags               = {
+  tags = {
     Name = "CompilerExplorer"
   }
 }

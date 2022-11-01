@@ -31,22 +31,6 @@ resource "aws_alb_target_group" "ce" {
   }
 }
 
-resource "aws_alb_target_group" "nsolid" {
-  lifecycle {
-    create_before_destroy = true
-  }
-
-  name                          = "nsolid"
-  port                          = 6753
-  protocol                      = "HTTP"
-  vpc_id                        = module.ce_network.vpc.id
-}
-
-resource "aws_alb_target_group_attachment" "admin-node" {
-  target_group_arn = aws_alb_target_group.nsolid.arn
-  target_id        = aws_instance.AdminNode.id
-}
-
 resource "aws_alb_target_group" "conan" {
   lifecycle {
     create_before_destroy = true
