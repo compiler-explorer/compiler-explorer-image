@@ -457,6 +457,15 @@ libraries:
       targets:
       - 0.12.2
       type: github
+    icu:
+      build_type: manual
+      check_file: README.md
+      lib_type: shared
+      repo:  unicode-org/icu
+      target_prefix: release-
+      targets:
+      - 71-1
+      type: github
     hip-amd:
       check_file: include/hip/hip_runtime.h
       path_name: libs/rocm/{name}

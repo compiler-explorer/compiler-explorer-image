@@ -52,6 +52,35 @@ install_openssl() {
 install_openssl 1_1_1c 1_1_1g
 
 #########################
+# ICU
+
+install_icu() {
+    for VERSION in "$@"; do
+        local DEST=${OPT}/libs/icu/${VERSION}/x86_64/opt
+        if [[ ! -d ${DEST} ]]; then
+            pushd /tmp
+            fetch "https://github.com/unicode-org/icu/releases/download/release-${VERSION}/icu4c-${VERSION/-/_}-src.tgz" |
+                tar zxf -
+            pushd icu/source
+            ./configure --prefix=${DEST}
+            make
+            make install
+
+            make clean
+            ./configure --prefix=${DEST/x86_64/x86} --with-library-bits=32
+            make
+            make install
+
+            popd
+            rm -rf icu
+            popd
+        fi
+    done
+}
+
+install_icu 71-1
+
+#########################
 # cs50
 
 install_cs50_v9() {
