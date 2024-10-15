@@ -1,0 +1,22 @@
+compilers:
+  triton:
+    type: tarballs
+    dir: triton-{name}
+    depends:
+      - tools/cmake 3.29.2
+      - tools/ninja 1.11.1
+      - tools/wheel 0.43.0
+      - tools/pybind11 2.13.5
+      - compilers/c++/clang 18.1.0
+      - libraries/triton/triton-shared main
+    compression: gz
+    check_exe: python3 venv/lib/python3.12/site-packages/triton/tools/compile.py -h
+    url: https://github.com/triton-lang/triton/archive/refs/tags/v{name}.tar.gz
+    targets:
+      - 2.1.0
+    after_stage_script:
+      - cd triton-{name}
+      - python3 -m venv venv
+      - source venv/bin/activate
+      - cd python
+      - TRITON_BUILD_WITH_CLANG_LLD=true TRITON_PLUGIN_DIRS=/opt/compiler-explorer/triton-shared-main pip install -e .

@@ -1,4 +1,12 @@
 libraries:
+  triton:
+    triton-shared:
+      type: tarballs
+      dir: triton-shared-{name}
+      compression: gz
+      url: https://github.com/microsoft/triton-shared/archive/refs/heads/main.tar.gz
+      targets:
+      - 'main'
   android-java:
     android-api-stubs:
       check_file: android.jar

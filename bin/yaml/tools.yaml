@@ -110,6 +110,22 @@ tools:
     check_exe: bin/osaca --version
     targets:
       - 0.5.2
+  wheel:
+    type: pip
+    dir: wheel-{name}
+    python: /usr/bin/python3
+    package: wheel=={name}
+    check_exe: wheel version
+    targets:
+      - 0.43.0
+  pybind11:
+    type: pip
+    dir: pybind11-{name}
+    python: /usr/bin/python3
+    package: pybind11=={name}
+    check_exe: bin/pybind11-config --version
+    targets:
+      - 2.13.5
   rustfmt:
     type: tarballs
     dir: rustfmt-{name}
