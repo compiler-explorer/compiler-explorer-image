@@ -1,0 +1,22 @@
+#!/bin/bash
+
+set -euo pipefail
+
+if [[ "$(uname -s)" = "Darwin" ]]; then
+  ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+else
+  ROOT_DIR=$(readlink -f "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/../..")
+fi
+MY_NAME=$(basename "$0")
+
+if ! make -sq -C "${ROOT_DIR}" ce; then
+    echo "python environment is out of date"
+    echo "please run 'make ce' in the top level directory"
+    echo "(this is not done automatically as it can be a lengthy and surprising process)"
+    exit 1
+fi
+
+PYTHON_ENV=$(cd "${ROOT_DIR}" && "${ROOT_DIR}/.poetry/bin/poetry" env info --path)
+
+export PYTHONPATH=${ROOT_DIR}/bin
+exec "${PYTHON_ENV}/bin/python3" -m "lib.${MY_NAME}" "$@"

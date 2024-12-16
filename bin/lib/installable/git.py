@@ -19,7 +19,7 @@ _LOGGER = logging.getLogger(__name__)
 
 def _git_raw(logger: logging.Logger, cwd: Path, *git_args: Union[str, Path]) -> str:
     full_args = ["git"] + [str(x) for x in git_args]
-    _LOGGER.debug(shlex.join(full_args))
+    _LOGGER.debug("(in %s): %s", cwd, shlex.join(full_args))
     result = subprocess.check_output(full_args, cwd=cwd).decode("utf-8").strip()
     if result:
         logger.debug(" -> %s", result)

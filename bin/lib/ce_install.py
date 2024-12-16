@@ -17,6 +17,9 @@ import click
 import yaml
 
 from lib.amazon_properties import get_properties_compilers_and_libraries
+from lib.cefs.config import CefsConfig
+from lib.cefs.root import CefsFsRoot
+from lib.cefs.squash import SquashFsCreator
 from lib.config_safe_loader import ConfigSafeLoader
 from lib.installable.installable import Installable
 from lib.installation import installers_for
@@ -368,6 +371,78 @@ def squash(context: CliContext, filter_: List[str], force: bool, image_dir: Path
         else:
             _LOGGER.info("Squashing %s to %s", installable.name, destination)
             installable.squash_to(destination)
+
+
+CEFS_ROOT = Path("/cefs")
+
+
+@cli.command()
+@click.pass_obj
+@click.option("--force", is_flag=True, help="Force even if would otherwise skip")
+@click.option(
+    "--cefs-mountpoint",
+    default=Path("/cefs"),
+    metavar="MOUNTPOINT",
+    type=click.Path(file_okay=False, path_type=Path),
+    help="Install or assume cefs is to use MOUNTPOINT",
+    show_default=True,
+)
+@click.option(
+    "--squash-image-root",
+    default=Path("/opt/cefs-images"),
+    metavar="IMAGE_DIR",
+    type=click.Path(file_okay=False, path_type=Path),
+    help="Store or look for squashfs images in IMAGE_DIR",
+    show_default=True,
+)
+@click.argument("filter_", metavar="FILTER", nargs=-1)
+def buildroot(context: CliContext, filter_: List[str], force: bool, squash_image_root: Path, cefs_mountpoint: Path):
+    """Squash all things matching to a single layer."""
+
+    installation_context = context.installation_context
+    cefs_config = CefsConfig(mountpoint=cefs_mountpoint, image_root=squash_image_root)
+    fs_root = CefsFsRoot(fs_root=installation_context.destination, config=cefs_config)
+
+    current_image = fs_root.read_image()
+    to_install = []
+    for installable in context.get_installables(filter_):
+        if force or installable.should_install():
+            to_install.append(installable)
+            dest_path = installation_context.destination / installable.install_path
+            if dest_path.exists() and not dest_path.is_symlink():
+                _LOGGER.error("Found an installable that wasn't a symlink: %s", dest_path)
+                sys.exit(1)
+
+    install_creator = SquashFsCreator(config=cefs_config)
+    with install_creator.creation_path() as tmp_path:
+        _LOGGER.info("Installing everything to a temp dir: %s", tmp_path)
+        installation_context.set_temp_destination(tmp_path)
+        num_installed = 0
+        for installable in to_install:
+            installable.install()
+            if not installable.is_installed():
+                _LOGGER.error("%s installed OK, but doesn't appear as installed after", installable.name)
+                sys.exit(1)
+            current_image.add_metadata(f"Installing {installable.install_path} from {installable}")
+            num_installed += 1
+
+    if not num_installed:
+        click.echo("No changes: not updating base image")
+        return
+
+    new_squashfs_cefs = install_creator.cefs_path
+    for installable in to_install:
+        current_image.link_path(Path(installable.install_path), new_squashfs_cefs / installable.install_path)
+
+    _LOGGER.info("Building new root fs")
+    root_creator = SquashFsCreator(config=cefs_config)
+    with root_creator.creation_path() as tmp_path:
+        current_image.render_to(tmp_path)
+
+    new_squashfs_cefs = root_creator.cefs_path
+
+    click.echo(f"Built to {new_squashfs_cefs}")
+    fs_root.update(new_squashfs_cefs)
 
 
 @cli.command()

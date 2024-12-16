@@ -85,6 +85,10 @@ class InstallationContext:
     def prior_installation(self) -> Path:
         return self._prior_installation
 
+    def set_temp_destination(self, tmp_path: Path) -> None:
+        self._staging_root = tmp_path / "staging"
+        self._destination = tmp_path
+
     @contextlib.contextmanager
     def new_staging_dir(self) -> Iterator[StagingDir]:
         staging_dir = StagingDir(self._staging_root / str(uuid.uuid4()), self._keep_staging)
