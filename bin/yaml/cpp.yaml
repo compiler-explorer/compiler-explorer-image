@@ -226,6 +226,61 @@ compilers:
             targets:
               - gcc-arm-11.2-2022.02-x86_64-arm-none-eabi # name unused in this case
           - type: tarballs
+            check_exe: bin/arm-none-eabi-g++ --version
+            subdir: arm
+            dir: arm/arm-gnu-toolchain-{name}-x86_64-arm-none-eabi
+            untar_dir: arm-gnu-toolchain-{name}-x86_64-arm-none-eabi
+            url: https://developer.arm.com/-/media/Files/downloads/gnu/{name}/binrel/arm-gnu-toolchain-{name}-x86_64-arm-none-eabi.tar.xz
+            compression: xz
+            targets:
+              - 11.3.rel1
+              - 12.2.rel1
+              - 12.3.rel1
+          - type: tarballs
+            check_exe: bin/arm-none-linux-gnueabihf-g++ --version
+            subdir: arm
+            dir: arm/arm-gnu-toolchain-{name}-x86_64-arm-none-linux-gnueabihf
+            untar_dir: arm-gnu-toolchain-{name}-x86_64-arm-none-linux-gnueabihf
+            url: https://developer.arm.com/-/media/Files/downloads/gnu/{name}/binrel/arm-gnu-toolchain-{name}-x86_64-arm-none-linux-gnueabihf.tar.xz
+            compression: xz
+            targets:
+              - 11.3.rel1
+              - 12.2.rel1
+              - 12.3.rel1
+          - type: tarballs
+            check_exe: bin/aarch64-none-elf-g++ --version
+            subdir: arm64
+            dir: arm64/arm-gnu-toolchain-{name}-x86_64-aarch64-none-elf
+            untar_dir: arm-gnu-toolchain-{name}-x86_64-aarch64-none-elf
+            url: https://developer.arm.com/-/media/Files/downloads/gnu/{name}/binrel/arm-gnu-toolchain-{name}-x86_64-aarch64-none-elf.tar.xz
+            compression: xz
+            targets:
+              - 11.3.rel1
+              - 12.2.rel1
+              - 12.3.rel1
+          - type: tarballs
+            check_exe: bin/aarch64-none-linux-gnu-g++ --version
+            subdir: arm64
+            dir: arm64/arm-gnu-toolchain-{name}-x86_64-aarch64-none-linux-gnu
+            untar_dir: arm-gnu-toolchain-{name}-x86_64-aarch64-none-linux-gnu
+            url: https://developer.arm.com/-/media/Files/downloads/gnu/{name}/binrel/arm-gnu-toolchain-{name}-x86_64-aarch64-none-linux-gnu.tar.xz
+            compression: xz
+            targets:
+              - 11.3.rel1
+              - 12.2.rel1
+              - 12.3.rel1
+          - type: tarballs
+            check_exe: bin/aarch64_be-none-linux-gnu-g++ --version
+            subdir: arm64
+            dir: arm64/arm-gnu-toolchain-{name}-x86_64-aarch64_be-none-linux-gnu
+            untar_dir: arm-gnu-toolchain-{name}-x86_64-aarch64_be-none-linux-gnu
+            url: https://developer.arm.com/-/media/Files/downloads/gnu/{name}/binrel/arm-gnu-toolchain-{name}-x86_64-aarch64_be-none-linux-gnu.tar.xz
+            compression: xz
+            targets:
+              - 11.3.rel1
+              - 12.2.rel1
+              - 12.3.rel1
+          - type: tarballs
             # Not in a subdir
             check_exe: bin/arm-none-eabi-g++ --version
             dir: gcc-arm-none-eabi-5_4-2016q3
