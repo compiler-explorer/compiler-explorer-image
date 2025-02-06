@@ -412,6 +412,7 @@ libraries:
       build_type: none
       check_file: README.md
       method: clone_branch
+      recursive: false
       repo: electronicarts/EASTL
       targets:
       - 3.12.01
@@ -432,6 +433,21 @@ libraries:
       - 3.15.00
       - 3.16.01
       - 3.16.05
+      - 3.16.07
+      - 3.17.00
+      - 3.17.02
+      - 3.17.03
+      - 3.17.06
+      - 3.18.00
+      - 3.21.12
+      - after_stage_script:
+        - mkdir build
+        - cd build
+        - /opt/compiler-explorer/cmake/bin/cmake ..
+        - cp -r ./_deps/eabase-src/include/Common/EABase ../include/EABase
+        - cd ..
+        - rm -rf build
+        name: 3.21.23
       type: github
     eigen:
       check_file: README.md
@@ -1275,6 +1291,13 @@ libraries:
         - trunk
         type: github
       eastl:
+        after_stage_script:
+        - mkdir build
+        - cd build
+        - /opt/compiler-explorer/cmake/bin/cmake ..
+        - cp -r ./_deps/eabase-src/include/Common/EABase ../include/EABase
+        - cd ..
+        - rm -rf build
         build_type: none
         check_file: README.md
         method: nightlyclone
