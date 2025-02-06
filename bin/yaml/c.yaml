@@ -70,6 +70,19 @@ compilers:
       check_exe: bin/zcc -h
       targets:
         - '2.2'
+    orca-c:
+      if: non-free
+      type: non-free-s3tarballs
+      compression: gz
+      dir: orca-c-{{name}}
+      check_file: Languages/cc
+      extract_xattrs: True
+      depends:
+        - tools/goldengate 2.0.9
+      targets:
+        - 2.1.0
+        - 2.2.0
+        - 2.2.1
     nightly:
       if: nightly
       cc65:

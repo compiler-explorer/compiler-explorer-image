@@ -49,15 +49,19 @@ class S3TarballInstallable(Installable):
         compression = self.config_get("compression", "xz")
         if compression == "xz":
             self.s3_path = f"{s3_path_prefix}.tar.xz"
-            self.decompress_flag = "J"
+            decompress_flag = "J"
         elif compression == "gz":
             self.s3_path = f"{s3_path_prefix}.tar.gz"
-            self.decompress_flag = "z"
+            decompress_flag = "z"
         elif compression == "bz2":
             self.s3_path = f"{s3_path_prefix}.tar.bz2"
-            self.decompress_flag = "j"
+            decompress_flag = "j"
         else:
             raise RuntimeError(f"Unknown compression {compression}")
+        self.tar_cmd = ["tar", f"{decompress_flag}xf", "-"]
+        extract_xattrs = self.config_get("extract_xattrs", False)
+        if extract_xattrs:
+            self.tar_cmd += ["--xattrs"]
         self.strip = self.config_get("strip", False)
 
     def fetch_and_pipe_to(self, staging: StagingDir, s3_path: str, command: list[str]) -> None:
@@ -65,7 +69,7 @@ class S3TarballInstallable(Installable):
         self.install_context.fetch_s3_and_pipe_to(staging, s3_path, command)
 
     def stage(self, staging: StagingDir) -> None:
-        self.fetch_and_pipe_to(staging, self.s3_path, ["tar", f"{self.decompress_flag}xf", "-"])
+        self.fetch_and_pipe_to(staging, self.s3_path, self.tar_cmd)
         if self.strip:
             self.install_context.strip_exes(staging, self.strip)
 
@@ -212,6 +216,9 @@ class TarballInstallable(Installable):
         extract_only = self.config_get("extract_only", "")
         if extract_only:
             self.tar_cmd += [extract_only]
+        extract_xattrs = self.config_get("extract_xattrs", False)
+        if extract_xattrs:
+            self.tar_cmd += ["--xattrs"]
         self.strip = self.config_get("strip", False)
         self.remove_older_pattern = self.config_get("remove_older_pattern", "")
         self.num_to_keep = self.config_get("num_to_keep", 5)

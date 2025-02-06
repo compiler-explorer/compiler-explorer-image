@@ -207,3 +207,11 @@ tools:
     check_exe: bin/bloaty --help
     targets:
       - "1.1"
+  goldengate:
+    if: non-free
+    type: non-free-s3tarballs
+    compression: gz
+    dir: goldengate-{{name}}
+    check_exe: bin/iix --version
+    targets:
+      - 2.0.9
