@@ -123,6 +123,9 @@ class Installable:
         if self.install_context.only_nightly and not self.nightly_like:
             return False
 
+        if self.install_context.only_native_aarch64 and self.config_get("if", "") != "native_aarch64":
+            return False
+
         return self.install_always or not self.is_installed()
 
     def should_build(self):

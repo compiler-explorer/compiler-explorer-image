@@ -1495,3 +1495,17 @@ compilers:
         - name: 4.9.4
           tag: v2.6
           name_no_dots: 494
+    native_aarch64:
+      if: native_aarch64
+      armofficial:
+        type: script
+        dir: "{subdir}/arm-clang-{name}"
+        check_file: "arm-linux-compiler-23.10_Ubuntu-22.04/llvm-bin/clang++"
+        subdir: native_aarch64
+        script: |
+          tar -xf "archive.tar" --strip-components=1
+          arm-compiler-for-linux_23.10_Ubuntu-22.04/arm-compiler-for-linux_23.10_Ubuntu-22.04.sh -a -i "{destination}/{dir}"
+        targets:
+          - name: 23.10
+            fetch:
+              - https://developer.arm.com/-/media/Files/downloads/hpc/arm-compiler-for-linux/23-10/arm-compiler-for-linux_23.10_Ubuntu-22.04_aarch64.tar archive.tar

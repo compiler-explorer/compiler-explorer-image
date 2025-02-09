@@ -28,6 +28,7 @@ def _ensure_no_global_config():
 def fake_context_fixture():
     ctx = mock.Mock(spec=InstallationContext)
     ctx.only_nightly = False
+    ctx.only_native_aarch64 = False
     return ctx
 
 
@@ -35,6 +36,7 @@ def fake_context_fixture():
 def fake_context_nightly_fixture():
     ctx = mock.Mock(spec=InstallationContext)
     ctx.only_nightly = True
+    ctx.only_native_aarch64 = False
     return ctx
 
 

@@ -150,6 +150,7 @@ def squash_mount_check(rootfolder: Path, subdir: str, context: CliContext) -> No
 )
 @click.option("--enable", metavar="TYPE", multiple=True, help='Enable targets of type TYPE (e.g. "nightly")')
 @click.option("--only-nightly", is_flag=True, help="Only install the nightly targets")
+@click.option("--only-native-aarch64", is_flag=True, help="Only install the Native Aarch64 targets")
 @click.option(
     "--cache",
     metavar="DIR",
@@ -198,6 +199,7 @@ def cli(
     dry_run: bool,
     enable: List[str],
     only_nightly: bool,
+    only_native_aarch64: bool,
     cache: Optional[Path],
     yaml_dir: Path,
     allow_unsafe_ssl: bool,
@@ -226,6 +228,7 @@ def cli(
         dry_run=dry_run,
         is_nightly_enabled="nightly" in enable,
         only_nightly=only_nightly,
+        only_native_aarch64=only_native_aarch64,
         cache=cache,
         yaml_dir=yaml_dir,
         allow_unsafe_ssl=allow_unsafe_ssl,
