@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import re
+import shutil
 import socket
 import subprocess
 from functools import partial
@@ -11,7 +12,8 @@ from pathlib import Path
 from typing import Optional, Callable, Dict, List, Any, Union
 from lib.nightly_versions import NightlyVersions
 
-from lib.installation_context import InstallationContext
+from lib.library_platform import LibraryPlatform
+from lib.installation_context import InstallationContext, is_windows
 from lib.library_build_config import LibraryBuildConfig
 from lib.library_builder import LibraryBuilder
 from lib.rust_library_builder import RustLibraryBuilder
@@ -41,7 +43,7 @@ class Installable:
         self.context = self.config_get("context", [])
         self.name = f'{"/".join(self.context)} {self.target_name}'
         self.is_library = False
-        self.language = False
+        self.language = ""
         if len(self.context) > 0:
             self.is_library = self.context[0] == "libraries"
         if len(self.context) > 1:
@@ -60,6 +62,8 @@ class Installable:
         self.check_stderr_on_stdout = self.config.get("check_stderr_on_stdout", False)
         self.install_path = ""
         self.after_stage_script = self.config_get("after_stage_script", [])
+        if is_windows():
+            self.after_stage_script = self.config_get("after_stage_script_pwsh", self.after_stage_script)
         self._logger = logging.getLogger(self.name)
         self.install_path_symlink = self.config_get("symlink", False)
 
@@ -140,6 +144,10 @@ class Installable:
                 self._logger.info("Installing required dependee %s", dependee)
                 dependee.install()
         self._logger.debug("Dependees installed")
+
+    def uninstall(self) -> None:
+        self._logger.debug("Removing %s", self.install_context.destination / self.install_path)
+        shutil.rmtree(self.install_context.destination / self.install_path, ignore_errors=True)
 
     def save_version(self, exe: str, res_call: str):
         if not self.nightly_like:
@@ -240,7 +248,7 @@ class Installable:
     def nightly_like(self) -> bool:
         return self.install_always or self.target_name in ["nightly", "trunk", "master", "main"]
 
-    def build(self, buildfor, popular_compilers_only):
+    def build(self, buildfor: str, popular_compilers_only: bool, platform: LibraryPlatform):
         if not self.is_library:
             raise RuntimeError("Nothing to build")
 
@@ -249,7 +257,7 @@ class Installable:
 
         if self.build_config.build_type in ["cmake", "make"]:
             sourcefolder = os.path.join(self.install_context.destination, self.install_path)
-            builder = LibraryBuilder(
+            cppbuilder = LibraryBuilder(
                 _LOGGER,
                 self.language,
                 self.context[-1],
@@ -258,14 +266,15 @@ class Installable:
                 self.install_context,
                 self.build_config,
                 popular_compilers_only,
+                platform,
             )
             if self.build_config.build_type == "cmake":
-                return builder.makebuild(buildfor)
+                return cppbuilder.makebuild(buildfor)
             elif self.build_config.build_type == "make":
-                return builder.makebuild(buildfor)
+                return cppbuilder.makebuild(buildfor)
         elif self.build_config.build_type == "fpm":
             sourcefolder = os.path.join(self.install_context.destination, self.install_path)
-            builder = FortranLibraryBuilder(
+            fbuilder = FortranLibraryBuilder(
                 _LOGGER,
                 self.language,
                 self.context[-1],
@@ -275,12 +284,12 @@ class Installable:
                 self.build_config,
                 popular_compilers_only,
             )
-            return builder.makebuild(buildfor)
+            return fbuilder.makebuild(buildfor)
         elif self.build_config.build_type == "cargo":
-            builder = RustLibraryBuilder(
+            rbuilder = RustLibraryBuilder(
                 _LOGGER, self.language, self.context[-1], self.target_name, self.install_context, self.build_config
             )
-            return builder.makebuild(buildfor)
+            return rbuilder.makebuild(buildfor)
         else:
             raise RuntimeError("Unsupported build_type")
 

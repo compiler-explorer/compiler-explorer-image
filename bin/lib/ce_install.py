@@ -18,6 +18,7 @@ import click
 import yaml
 
 from lib.amazon_properties import get_properties_compilers_and_libraries
+from lib.library_platform import LibraryPlatform
 from lib.config_safe_loader import ConfigSafeLoader
 from lib.installable.installable import Installable
 from lib.installation import installers_for
@@ -219,6 +220,11 @@ def cli(
         console_handler = logging.StreamHandler(sys.stderr)
         console_handler.setFormatter(formatter)
         root_logger.addHandler(console_handler)
+
+    platform = LibraryPlatform.Linux
+    if "windows" in enable:
+        platform = LibraryPlatform.Windows
+
     context = InstallationContext(
         destination=dest,
         staging_root=staging_dir,
@@ -232,6 +238,7 @@ def cli(
         resource_dir=resource_dir,
         keep_staging=keep_staging,
         check_user=check_user,
+        platform=platform,
     )
     ctx.obj = CliContext(
         installation_context=context,
@@ -308,7 +315,7 @@ def amazon_check():
 
     for language in languages:
         _LOGGER.info("Checking %s libraries", language)
-        [_, libraries] = get_properties_compilers_and_libraries(language, _LOGGER)
+        [_, libraries] = get_properties_compilers_and_libraries(language, _LOGGER, LibraryPlatform.Linux)
 
         for libraryid in libraries:
             _LOGGER.debug("Checking %s", libraryid)
@@ -463,35 +470,64 @@ def install(context: CliContext, filter_: List[str], force: bool):
     "leave empty to build for all",
 )
 @click.option("--popular-compilers-only", is_flag=True, help="Only build with popular (enough) compilers")
+@click.option("--temp-install", is_flag=True, help="Temporary install target if it's not installed yet")
 @click.argument("filter_", metavar="FILTER", nargs=-1)
-def build(context: CliContext, filter_: List[str], force: bool, buildfor: str, popular_compilers_only: bool):
+def build(
+    context: CliContext,
+    filter_: List[str],
+    force: bool,
+    buildfor: str,
+    popular_compilers_only: bool,
+    temp_install: bool,
+):
     """Build library targets matching FILTER."""
     num_installed = 0
     num_skipped = 0
     num_failed = 0
+
+    platform = LibraryPlatform.Linux
+
+    if "windows" in context.enabled:
+        platform = LibraryPlatform.Windows
+
     for installable in context.get_installables(filter_):
         if buildfor:
-            print(f"Building {installable.name} just for {buildfor}")
+            print(f"Building {installable.name} ({platform.value}) just for {buildfor}")
         else:
-            print(f"Building {installable.name} for all")
+            print(f"Building {installable.name} ({platform.value}) for all")
 
         if force or installable.should_build():
+            was_temp_installed = False
+
+            if not installable.is_installed() and temp_install:
+                _LOGGER.info("Temporarily installing %s", installable.name)
+                installable.install()
+                was_temp_installed = True
+
             if not installable.is_installed():
                 _LOGGER.info("%s is not installed, unable to build", installable.name)
                 num_skipped += 1
             else:
                 try:
-                    [num_installed, num_skipped, num_failed] = installable.build(buildfor, popular_compilers_only)
+                    [num_installed, num_skipped, num_failed] = installable.build(
+                        buildfor, popular_compilers_only, platform
+                    )
                     if num_installed > 0:
                         _LOGGER.info("%s built OK", installable.name)
                     elif num_failed:
                         _LOGGER.info("%s failed to build", installable.name)
+                    else:
+                        _LOGGER.info("%s hit a BUG", installable.name)
                 except RuntimeError as e:
                     if buildfor:
                         raise e
                     else:
                         _LOGGER.info("%s failed to build: %s", installable.name, e)
                         num_failed += 1
+
+            if was_temp_installed:
+                _LOGGER.info("Uninstalling temporary %s", installable.name)
+                installable.uninstall()
         else:
             _LOGGER.info("%s is already built, skipping", installable.name)
             num_skipped += 1

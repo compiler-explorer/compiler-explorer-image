@@ -1,4 +1,6 @@
 from typing import Any, Dict
+
+import botocore
 from lib.amazon import dynamodb_client
 
 
@@ -30,7 +32,11 @@ class LibraryBuildHistory:
         self.insert(lib_key, compiler_key, True)
 
     def insert(self, lib_key: str, compiler_key: str, success: bool):
-        dynamodb_client.put_item(
-            TableName="library-build-history",
-            Item={"library": {"S": lib_key}, "compiler": {"S": compiler_key}, "success": {"BOOL": success}},
-        )
+        try:
+            dynamodb_client.put_item(
+                TableName="library-build-history",
+                Item={"library": {"S": lib_key}, "compiler": {"S": compiler_key}, "success": {"BOOL": success}},
+            )
+        except botocore.exceptions.NoCredentialsError:
+            self.logger.error("Failed to insert into library-build-history (check if you've set your AWS credentials)")
+            return

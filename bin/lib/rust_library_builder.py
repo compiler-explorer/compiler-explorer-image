@@ -17,6 +17,7 @@ from urllib3.exceptions import ProtocolError
 import requests
 from lib.staging import StagingDir
 from lib.installation_context import InstallationContext
+from lib.library_platform import LibraryPlatform
 
 from lib.rust_crates import RustCrate, get_builder_user_agent_id
 
@@ -87,7 +88,9 @@ class RustLibraryBuilder:
         if self.language in _propsandlibs:
             [self.compilerprops, self.libraryprops] = _propsandlibs[self.language]
         else:
-            [self.compilerprops, self.libraryprops] = get_properties_compilers_and_libraries(self.language, self.logger)
+            [self.compilerprops, self.libraryprops] = get_properties_compilers_and_libraries(
+                self.language, self.logger, LibraryPlatform.Linux
+            )
             _propsandlibs[self.language] = [self.compilerprops, self.libraryprops]
 
         self.cached_source_folders: List[str] = []

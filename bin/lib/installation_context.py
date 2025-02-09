@@ -18,6 +18,7 @@ import requests.adapters
 import yaml
 import requests_cache
 
+from lib.library_platform import LibraryPlatform
 from lib.config_safe_loader import ConfigSafeLoader
 from lib.staging import StagingDir
 
@@ -48,6 +49,7 @@ class InstallationContext:
         resource_dir: Path,
         keep_staging: bool,
         check_user: str,
+        platform: LibraryPlatform,
     ):
         self._destination = destination
         self._prior_installation = self.destination
@@ -57,6 +59,7 @@ class InstallationContext:
         self.dry_run = dry_run
         self.is_nightly_enabled = is_nightly_enabled
         self.only_nightly = only_nightly
+        self.platform = platform
         retry_strategy = requests.adapters.Retry(
             total=10,
             backoff_factor=1,
@@ -140,13 +143,37 @@ class InstallationContext:
     ) -> None:
         untar_dir = staging.path / subdir
         untar_dir.mkdir(parents=True, exist_ok=True)
-        # We stream to a temporary file first before then piping this to the command
-        # as sometimes the command can take so long the URL endpoint closes the door on us
-        with tempfile.TemporaryFile() as fd:
-            self.fetch_to(url, fd, agent)
-            fd.seek(0)
-            _LOGGER.info("Piping to %s", shlex.join(command))
-            subprocess.check_call(command, stdin=fd, cwd=str(untar_dir))
+
+        if is_windows() and command[0] == "7z":
+            temp_file_path = ""
+
+            # download the file first
+            with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+                temp_file_path = temp_file.name
+                self.fetch_to(url, temp_file, agent)
+
+            # create a powershell script to extract the file
+            with tempfile.NamedTemporaryFile(suffix=".ps1", delete=False) as script_file:
+                # first to extract the tar file
+                script_file.write(
+                    f'{" ".join(command)} -o"{os.path.dirname(temp_file_path)}" {temp_file_path}\n'.encode("utf-8")
+                )
+                # the tar file was automatically suffixed with ~ by 7z, extract that tar to the untar_dir
+                script_file.write(f'7z x -ttar -o"{untar_dir}" {temp_file_path}~\n'.encode("utf-8"))
+
+            subprocess.check_call(["pwsh", script_file.name], cwd=str(untar_dir))
+
+            os.remove(temp_file_path + "~")
+            os.remove(temp_file_path)
+            os.remove(script_file.name)
+        else:
+            # We stream to a temporary file first before then piping this to the command
+            # as sometimes the command can take so long the URL endpoint closes the door on us
+            with tempfile.TemporaryFile() as fd:
+                self.fetch_to(url, fd, agent)
+                fd.seek(0)
+                _LOGGER.info("Piping to %s", shlex.join(command))
+                subprocess.check_call(command, stdin=fd, cwd=str(untar_dir))
 
     def stage_command(self, staging: StagingDir, command: Sequence[str], cwd: Optional[Path] = None) -> None:
         _LOGGER.info("Staging with %s", shlex.join(command))
@@ -329,16 +356,25 @@ class InstallationContext:
         from_path = Path(from_path)
         if len(lines) > 0:
             _LOGGER.info("Running script")
-            script_file = from_path / "ce_script.sh"
-            with script_file.open("w", encoding="utf-8") as f:
-                f.write("#!/bin/bash\n\nset -euo pipefail\n\n")
-                for line in lines:
-                    f.write(f"{line}\n")
+            if self.platform == LibraryPlatform.Linux:
+                script_file = from_path / "ce_script.sh"
+                with script_file.open("w", encoding="utf-8") as f:
+                    f.write("#!/bin/bash\n\nset -euo pipefail\n\n")
+                    for line in lines:
+                        f.write(f"{line}\n")
 
-            script_file.chmod(0o755)
-            self.stage_command(staging, [str(script_file)], cwd=from_path)
-            if not self.dry_run:
-                script_file.unlink()
+                script_file.chmod(0o755)
+                self.stage_command(staging, [str(script_file)], cwd=from_path)
+                if not self.dry_run:
+                    script_file.unlink()
+            elif self.platform == LibraryPlatform.Windows:
+                script_file = from_path / "ce_script.ps1"
+                with script_file.open("w", encoding="utf-8") as f:
+                    for line in lines:
+                        f.write(f"{line}\n")
+                self.stage_command(staging, ["pwsh", str(script_file)], cwd=from_path)
+                if not self.dry_run:
+                    script_file.unlink()
 
     def is_elf(self, maybe_elf_file: Path):
         return b"ELF" in subprocess.check_output(["file", maybe_elf_file])

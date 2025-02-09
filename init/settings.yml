@@ -1,5 +1,6 @@
 os:
     Linux:
+    Windows:
 
 arch: ANY
 
@@ -45,6 +46,15 @@ compiler:
         version: ANY
         libcxx: ANY
     flang-fc1:
+        version: ANY
+        libcxx: ANY
+    win32-vc:
+        version: ANY
+        libcxx: ANY
+    win32-mingw-gcc:
+        version: ANY
+        libcxx: ANY
+    win32-mingw-clang:
         version: ANY
         libcxx: ANY
 

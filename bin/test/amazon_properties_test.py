@@ -2,6 +2,7 @@ import logging
 import pytest
 import requests
 from lib.amazon_properties import get_properties_compilers_and_libraries, get_specific_library_version_details
+from lib.library_platform import LibraryPlatform
 
 logger = logging.getLogger(__name__)
 logger.level = 9
@@ -14,7 +15,7 @@ logger.level = 9
 
 def test_should_have_staticliblink():
     try:
-        [_compilers, _libraries] = get_properties_compilers_and_libraries("c++", logger)
+        [_compilers, _libraries] = get_properties_compilers_and_libraries("c++", logger, LibraryPlatform.Linux)
         assert "googletest" in _libraries
         assert len(_libraries["googletest"]["versionprops"]["trunk"]["staticliblink"]) > 0
         assert _libraries["googletest"]["versionprops"]["trunk"]["staticliblink"][0] == "gtest"
@@ -25,7 +26,7 @@ def test_should_have_staticliblink():
 
 def test_googletest_should_have_versions():
     try:
-        [_compilers, _libraries] = get_properties_compilers_and_libraries("c++", logger)
+        [_compilers, _libraries] = get_properties_compilers_and_libraries("c++", logger, LibraryPlatform.Linux)
         assert "googletest" in _libraries
         assert len(_libraries["googletest"]["versionprops"]) > 0
         assert _libraries["googletest"]["versionprops"]["110"]["lookupversion"] == "release-1.10.0"

@@ -20,6 +20,7 @@ import requests
 
 from lib.amazon import get_ssm_param
 from lib.amazon_properties import get_specific_library_version_details, get_properties_compilers_and_libraries
+from lib.library_platform import LibraryPlatform
 from lib.library_build_config import LibraryBuildConfig
 from lib.staging import StagingDir
 
@@ -97,7 +98,9 @@ class FortranLibraryBuilder:
         if self.language in _propsandlibs:
             [self.compilerprops, self.libraryprops] = _propsandlibs[self.language]
         else:
-            [self.compilerprops, self.libraryprops] = get_properties_compilers_and_libraries(self.language, self.logger)
+            [self.compilerprops, self.libraryprops] = get_properties_compilers_and_libraries(
+                self.language, self.logger, LibraryPlatform.Linux
+            )
             _propsandlibs[self.language] = [self.compilerprops, self.libraryprops]
 
         self.check_compiler_popularity = popular_compilers_only

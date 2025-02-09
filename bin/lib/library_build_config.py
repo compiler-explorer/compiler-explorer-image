@@ -1,4 +1,5 @@
 from typing import Optional, Dict, Any
+from lib.installation_context import is_windows
 
 valid_lib_types = ["static", "shared", "cshared"]
 
@@ -18,7 +19,11 @@ class LibraryBuildConfig:
         self.description = ""
         self.configure_flags = self.config_get("configure_flags", [])
         self.prebuild_script = self.config_get("prebuild_script", [])
+        if is_windows():
+            self.prebuild_script = self.config_get("prebuild_script_pwsh", self.prebuild_script)
         self.postbuild_script = self.config_get("postbuild_script", [])
+        if is_windows():
+            self.postbuild_script = self.config_get("postbuild_script_pwsh", self.postbuild_script)
         self.extra_cmake_arg = self.config_get("extra_cmake_arg", [])
         self.extra_make_arg = self.config_get("extra_make_arg", [])
         self.make_targets = self.config_get("make_targets", [])
