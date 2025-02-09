@@ -29,6 +29,7 @@ from lib.amazon import (
     put_bouncelock_file,
     delete_bouncelock_file,
     has_bouncelock_file,
+    set_current_notify,
 )
 from lib.cdn import DeploymentJob
 from lib.ce_utils import describe_current_release, are_you_sure, display_releases, confirm_branch, confirm_action
@@ -196,6 +197,9 @@ def builds_set_current(cfg: Config, branch: Optional[str], version: str, raw: bo
             old_deploy_staticfiles(branch, to_set)
         set_current_key(cfg, to_set)
         if release:
+            if cfg.env.value == cfg.env.PROD:
+                print("Logging for notifications")
+                set_current_notify(release.hash.hash)
             print("Marking as a release in sentry...")
             token = get_ssm_param("/compiler-explorer/sentryAuthToken")
             result = requests.post(

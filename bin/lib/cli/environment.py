@@ -2,10 +2,19 @@ import time
 
 import click
 
-from lib.amazon import get_autoscaling_groups_for, as_client
+from lib.amazon import (
+    get_autoscaling_groups_for,
+    as_client,
+    get_current_release,
+    get_current_notify,
+    get_ssm_param,
+    delete_notify_file,
+)
 from lib.ce_utils import are_you_sure, describe_current_release, set_update_message
 from lib.cli import cli
 from lib.env import Config, Environment
+
+from lib.notify import handle_notify
 
 
 @cli.group()
@@ -54,14 +63,17 @@ def environment_start(cfg: Config):
     help="Set the message of the day used during refresh",
     show_default=True,
 )
+@click.option("--notify/--no-notify", help="Send GitHub notifications for newly released PRs", default=True)
 @click.pass_obj
-def environment_refresh(cfg: Config, min_healthy_percent: int, motd: str):
+def environment_refresh(cfg: Config, min_healthy_percent: int, motd: str, notify: bool):
     """Refreshes an environment.
 
     This replaces all the instances in the ASGs associated with an environment with
     new instances (with the latest code), while ensuring there are some left to handle
     the traffic while we update."""
     set_update_message(cfg, motd)
+    current_release = get_current_release(cfg)
+
     for asg in get_autoscaling_groups_for(cfg):
         group_name = asg["AutoScalingGroupName"]
         if asg["DesiredCapacity"] == 0:
@@ -105,6 +117,12 @@ def environment_refresh(cfg: Config, min_healthy_percent: int, motd: str):
                 last_log = log
             if status in ("Successful", "Failed", "Cancelled"):
                 break
+    if cfg.env.value == cfg.env.PROD and notify:
+        current_notify = get_current_notify()
+        if current_notify is not None and current_release is not None:
+            gh_token = get_ssm_param("/compiler-explorer/githubAuthToken")
+            handle_notify(current_notify, current_release.hash.hash, gh_token)
+            delete_notify_file()
     set_update_message(cfg, "")
 
 
