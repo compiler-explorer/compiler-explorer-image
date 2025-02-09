@@ -16,6 +16,7 @@ from lib.library_build_config import LibraryBuildConfig
 from lib.library_builder import LibraryBuilder
 from lib.rust_library_builder import RustLibraryBuilder
 from lib.fortran_library_builder import FortranLibraryBuilder
+from lib.go_library_builder import GoLibraryBuilder
 from lib.staging import StagingDir
 
 _LOGGER = logging.getLogger(__name__)
@@ -278,6 +279,11 @@ class Installable:
             return builder.makebuild(buildfor)
         elif self.build_config.build_type == "cargo":
             builder = RustLibraryBuilder(
+                _LOGGER, self.language, self.context[-1], self.target_name, self.install_context, self.build_config
+            )
+            return builder.makebuild(buildfor)
+        elif self.build_config.build_type == "golib":
+            builder = GoLibraryBuilder(
                 _LOGGER, self.language, self.context[-1], self.target_name, self.install_context, self.build_config
             )
             return builder.makebuild(buildfor)

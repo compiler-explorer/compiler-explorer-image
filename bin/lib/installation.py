@@ -20,7 +20,7 @@ from lib.installable.python import PipInstallable
 from lib.installable.rust import RustInstallable, CratesIOInstallable
 from lib.installable.script import ScriptInstallable
 from lib.installable.solidity import SolidityInstallable
-
+from lib.installable.go import GoInstallable
 
 def targets_from(node, enabled, base_config=None):
     if base_config is None:
@@ -96,6 +96,7 @@ _INSTALLER_TYPES = {
     "cratesio": CratesIOInstallable,
     "non-free-s3tarballs": NonFreeS3TarballInstallable,
     "edg": EdgCompilerInstallable,
+    "golib": GoInstallable,
 }
 
 

@@ -3277,3 +3277,9 @@ libraries:
       targets:
       - '0.1'
       type: github
+  go:
+    protobuf:
+      url: google.golang.org
+      targets:
+      - v1.34.1
+      type: golib
